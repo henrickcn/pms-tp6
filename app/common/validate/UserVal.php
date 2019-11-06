@@ -26,14 +26,11 @@ class UserVal extends Validate
      * @var array
      */	
     protected $message = [
-        'phone.require'   => '手机号不能为空',
-        'phone.min'       => '手机号不能小于6位',
-        'phone.max'       => '手机号不能大于13位',
-        'oa_name.require' => 'OA账号不能为空',
-        'oa_name.min'     => 'OA账号不能小于4位',
-        'oa_name.max'     => 'OA账号不能大于70位',
+        'user_name.require' => 'OA账号不能为空',
+        'user_name.min'     => 'OA账号不能小于4位',
+        'user_name.max'     => 'OA账号不能大于100位',
         'pass_word.require' => '密码不能为空',
-        'pass_word.min'   => '密码不能小于6位',
-        'pass_word.max'   => '密码不能小于100位'
+        'pass_word.min'     => '密码不能小于6位',
+        'pass_word.max'     => '密码不能小于100位'
     ];
 }
