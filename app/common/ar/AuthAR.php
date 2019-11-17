@@ -14,10 +14,37 @@ namespace app\common\ar;
 
 
 use app\common\model\AuthMod;
+use think\db\exception\DbException;
 
 class AuthAR extends AuthMod
 {
     public function getNoLoginList(){
         return $this->field('url')->where(['is_login' => 0])->column('url');
+    }
+
+    public function getList($where, $page){
+        $count = $this->where($where)->count();
+        $data = $this->where($where)->limit(($page['current']-1)*$page['size'],$page['size'])->order('create_time desc')->select();
+        $page['total'] = $count;
+        return [
+            'count' => $count,
+            'page'  => $page,
+            'data'  => $data
+        ];
+    }
+
+    public function editor($data){
+        unset($data['session_key']);
+        $auth = $this->field('id')->whereOR(['id'=>$data['id']])->find();
+        try{
+            if($auth){
+                $auth->setAttrs($data);
+                return $auth->updateData();
+            }
+            return $this->save($data);
+        }catch (DbException $exception){
+            return $exception->getMessage();
+        }
+
     }
 }

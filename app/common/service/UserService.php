@@ -12,11 +12,63 @@
 
 namespace app\common\service;
 
+use app\common\ar\UserAR;
 use app\common\tools\GenerateTools;
+use app\common\validate\UserVal;
+use app\Request;
+use think\exception\ValidateException;
 
 class UserService
 {
-    public function login($post){
+    private $_userAR;
 
+    public function __construct(UserAR $userAR)
+    {
+        $this->_userAR = $userAR;
+    }
+
+    /**
+     * 登录服务层
+     * @param $data
+     * @return array
+     */
+    public function login($data){
+        try{
+            $ret = validate(UserVal::class)->scene('login')->check($data);
+            if($ret){
+                $data['ip'] = request()->ip();
+                $uRet = $this->_userAR->login($data);
+            }
+            if(isset($uRet['errcode'])){
+                return $uRet;
+            }
+            //查询用户信息
+            $info = $this->_userAR->getUserInfoById($uRet);
+            $session_key = GenerateTools::makeNonceStr(10).base64_encode(password_hash($info['id'].$data['ip'], 1)).GenerateTools::makeNonceStr(10);
+            cache($session_key, $info, 3600*2);
+            return GenerateTools::error(0, '登陆成功', ['session_key'=>$session_key]);
+        }catch (ValidateException $exception){
+            return GenerateTools::error(1, $exception->getMessage());
+        }
+    }
+
+    public function add($data){
+        try{
+            $data = [
+                'phone' => $data['username'],
+                'oa_name' => 'johnyhe',
+                'pass_word' => $data['pass_word']
+            ];
+            $vRet = validate(UserVal::class)->scene('insert')->check($data);
+            if($vRet === true){
+                $userRet = $this->_userAR->editor($data);
+            }
+            if($userRet === true){
+                return GenerateTools::error(0, '添加成功');
+            }
+            return $userRet;
+        }catch (ValidateException $exception){
+            return GenerateTools::error(1, $exception->getMessage());
+        }
     }
 }

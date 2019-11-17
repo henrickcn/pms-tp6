@@ -3,7 +3,6 @@ declare (strict_types = 1);
 
 namespace app\common\controller;
 
-use think\App;
 use think\exception\ValidateException;
 use think\Validate;
 
@@ -41,18 +40,19 @@ abstract class BaseController
      * @access public
      * @param  App  $app  应用对象
      */
-    public function __construct(App $app)
+    public function __construct()
     {
-        $this->app     = $app;
+        $this->app     = app();
         $this->request = $this->app->request;
-
         // 控制器初始化
         $this->initialize();
     }
 
     // 初始化
     protected function initialize()
-    {}
+    {
+
+    }
 
     /**
      * 验证数据

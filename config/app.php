@@ -38,5 +38,7 @@ return [
     // 显示错误信息
     'show_error_msg'   => false,
 
-    'cache_prefix' => Env::get('app.cache_prefix', 'product_')
+    'cache_prefix' => Env::get('app.cache_prefix', 'product_'),
+    //默认头像
+    'default_avatar' => Env::get('app.default_avatar', '/img/default_avatar.png'),
 ];

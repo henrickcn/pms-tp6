@@ -109,4 +109,19 @@ class GenerateTools
         }
         return $str;
     }
+
+    /**
+     * 返回错误信息方法
+     * @param int $code
+     * @param string $msg
+     * @param array $data
+     * @return array
+     */
+    public static function error($code=0, $msg='成功', $data=[]){
+        return [
+            'errcode' => $code,
+            'errmsg'  => $msg,
+            'data'    => $data
+        ];
+    }
 }

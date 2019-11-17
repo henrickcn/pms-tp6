@@ -14,6 +14,8 @@ namespace app\common\service;
 
 use app\common\ar\AuthAR;
 use app\common\tools\GenerateTools;
+use app\common\validate\AuthVal;
+use think\exception\ValidateException;
 
 class AuthService
 {
@@ -34,5 +36,23 @@ class AuthService
             cache(GenerateTools::cacheName('noCheckAuthList'), $data);
         }
         return $data;
+    }
+
+    public function getList($where, $page){
+        $ret = $this->_authAR->getList($where, $page);
+        return GenerateTools::error(0, '成功', $ret);
+    }
+
+    public function editor($data){
+        try{
+            validate(AuthVal::class)->check($data);
+            $ret = $this->_authAR->editor($data);
+            if($ret!==true){
+                return GenerateTools::error(1, '保存失败'.$ret);
+            }
+            return GenerateTools::error(0, '保存成功');
+        }catch (ValidateException $exception){
+            return GenerateTools::error(1, $exception->getMessage());
+        }
     }
 }

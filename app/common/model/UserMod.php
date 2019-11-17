@@ -29,4 +29,29 @@ class UserMod extends Model
         'login_ip' => 'string',
         'user_status' => 'int',
     ];
+
+    public static function onAfterInsert(Model $model)
+    {
+        $userInfoMod = new UserInfoMod();
+        return $userInfoMod->save(['user_id' => $model->id, 'phone'=> $model->phone]);
+    }
+
+    public function getNickNameAttr($value, $data){
+        if($value){
+            return $value;
+        }
+        if($data['real_name']){
+            return $data['real_name'];
+        }
+        if($data['oa_name']){
+            return $data['oa_name'];
+        }
+    }
+
+    public function getAvatarAttr($value, $data){
+        if($value){
+            return $value;
+        }
+        return config('app.default_avatar');
+    }
 }

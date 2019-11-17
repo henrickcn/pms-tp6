@@ -9,6 +9,12 @@ class IndexController extends PmsApiController
 {
     public function indexAction()
     {
-        return '您好！这是一个[pms]示例应用';
+        return static::_error(0,'成功',[
+            'userInfo' => [
+                'oa_name'   => $this->userInfo['oa_name'],
+                'nick_name' => $this->userInfo['nick_name'],
+                'avatar'    => $this->userInfo['avatar'],
+            ]
+        ]);
     }
 }

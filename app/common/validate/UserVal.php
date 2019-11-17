@@ -14,9 +14,10 @@ class UserVal extends Validate
      * @var array
      */	
 	protected $rule = [
-	    'phone'   => ['require|min:6|max:13'],
-        'oa_name' => ['require|min:4|max:70'],
-        'pass_word' => ['require|min:6|max:100']
+        'username' => ['require', 'min:4', 'max:100'],
+        'pass_word' => ['require', 'min:4', 'max:100'],
+        'phone' => ['require', 'mobile'],
+        'oa_name' => ['require', 'min:4']
     ];
     
     /**
@@ -26,11 +27,20 @@ class UserVal extends Validate
      * @var array
      */	
     protected $message = [
-        'user_name.require' => 'OA账号不能为空',
-        'user_name.min'     => 'OA账号不能小于4位',
-        'user_name.max'     => 'OA账号不能大于100位',
+        'username.require'  => '用户名不能为空',
+        'username.min'      => '用户名不能小于4位',
+        'username.max'      => '用户名不能大于100位',
         'pass_word.require' => '密码不能为空',
         'pass_word.min'     => '密码不能小于6位',
-        'pass_word.max'     => '密码不能小于100位'
+        'pass_word.max'     => '密码不能小于100位',
+        'phone.require'     => '手机号不能为空',
+        'phone.mobile'      => '手机号格式错误',
+        'oa_name.require'   => 'OA账号不能为空',
+        'oa_name.min'       => 'OA账号不能小于4位',
+    ];
+
+    protected $scene = [
+        'login' => ['username', 'pass_word'], //登录场景
+        'insert'=> ['phone', 'pass_word', 'oa_name'] //添加场景
     ];
 }
