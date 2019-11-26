@@ -56,7 +56,7 @@ class PmsApiController extends BaseController
         if(in_array($url, $data)){
             return parent::initialize();
         }
-        $sessionKey = $this->request->header('Authorization');
+        $sessionKey = $this->request->request('__session_key');
         if(!$sessionKey){
             exit(static::_error(100, '你还没有登录哦~'));
         }
