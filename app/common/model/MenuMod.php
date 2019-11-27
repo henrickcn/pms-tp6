@@ -23,6 +23,7 @@ class MenuMod extends Model
         'create_time' => 'datetime',
         'update_time' => 'datetime',
         'level' => 'number',
-        'parent_id' => 'string'
+        'parent_id' => 'string',
+        'weight' => 'number'
     ];
 }

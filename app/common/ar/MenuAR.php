@@ -46,4 +46,16 @@ class MenuAR extends MenuMod
         }
 
     }
+
+    public function getMenu($where){
+        $where['status'] = 1;
+        $count = $this->where($where)->count();
+        $data = $this->where($where)->limit(($page['current']-1)*$page['size'],$page['size'])->order('create_time desc')->select();
+        $page['total'] = $count;
+        return [
+            'count' => $count,
+            'page'  => $page,
+            'data'  => $data
+        ];
+    }
 }

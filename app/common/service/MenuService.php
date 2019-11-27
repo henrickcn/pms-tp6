@@ -17,6 +17,7 @@ use app\common\ar\MenuTypeAR;
 use app\common\tools\GenerateTools;
 use app\common\validate\CompanyVal;
 use app\common\validate\MenuType;
+use app\common\validate\MenuTypeVal;
 use think\exception\ValidateException;
 
 class MenuService
@@ -28,15 +29,15 @@ class MenuService
     }
 
 
-    public function getList($where, $page){
-        $ret = $this->_menuTypeAR->getList($where, $page);
+    public function getTypeList($where, $page=[], $orderBy=[]){
+        $ret = $this->_menuTypeAR->getList($where, $page, $orderBy);
         return GenerateTools::error(0, '成功', $ret);
     }
 
-    public function editor($data){
+    public function editorType($data){
         try{
-            validate(MenuType::class)->check($data);
-            $ret = $this->_companyAR->editor($data);
+            validate(MenuTypeVal::class)->check($data);
+            $ret = $this->_menuTypeAR->editor($data);
             if($ret!==true){
                 return GenerateTools::error(1, '保存失败'.$ret);
             }
@@ -46,11 +47,8 @@ class MenuService
         }
     }
 
-    public function del($id){
-        if(!$id){
-            return GenerateTools::error(1, '数据不存在');
-        }
-        $ret = $this->_companyAR->where(['id'=>$id])->delete();
+    public function delType($ids){
+        $ret = $this->_menuTypeAR->where('id', 'in', $ids)->update(['status'=>-1]);
         if(!$ret){
             return GenerateTools::error(1, '删除失败');
         }
