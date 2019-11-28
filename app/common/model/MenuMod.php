@@ -17,13 +17,15 @@ class MenuMod extends Model
     protected $schema = [
         'id'     => 'number',
         'name'   => 'string',
-        'type'   => 'number',
-        'auth_id' => 'number',
+        'type_id'   => 'number',
+        'auth_id' => 'string',
         'url' => 'string',
         'create_time' => 'datetime',
         'update_time' => 'datetime',
         'level' => 'number',
-        'parent_id' => 'string',
-        'weight' => 'number'
+        'parent_id' => 'number',
+        'weight' => 'number',
+        'icon' => 'string',
+        'join_string' => 'string'
     ];
 }

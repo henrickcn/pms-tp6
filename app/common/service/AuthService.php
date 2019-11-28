@@ -38,8 +38,8 @@ class AuthService
         return $data;
     }
 
-    public function getList($where, $page){
-        $ret = $this->_authAR->getList($where, $page);
+    public function getList($keyword='', $page=[]){
+        $ret = $this->_authAR->getList($keyword, $page);
         return GenerateTools::error(0, '成功', $ret);
     }
 

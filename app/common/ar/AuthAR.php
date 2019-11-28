@@ -22,9 +22,11 @@ class AuthAR extends AuthMod
         return $this->field('url')->where(['is_login' => 0])->column('url');
     }
 
-    public function getList($where, $page){
-        $count = $this->where($where)->count();
-        $data = $this->where($where)->limit(($page['current']-1)*$page['size'],$page['size'])->order('create_time desc')->select();
+    public function getList($keyword, $page){
+        $page['current'] = $page['current']??1;
+        $page['size'] = $page['size']??10;
+        $count = $this->where('name','like','%'.$keyword.'%')->count();
+        $data = $this->where('name','like','%'.$keyword.'%')->limit(($page['current']-1)*$page['size'],$page['size'])->order('create_time desc')->select();
         $page['total'] = $count;
         return [
             'count' => $count,

@@ -13,6 +13,7 @@
 namespace app\common\service;
 
 use app\common\ar\CompanyAR;
+use app\common\ar\MenuAR;
 use app\common\ar\MenuTypeAR;
 use app\common\tools\GenerateTools;
 use app\common\validate\CompanyVal;
@@ -23,9 +24,11 @@ use think\exception\ValidateException;
 class MenuService
 {
     private $_menuTypeAR;
+    private $_menuAR;
 
-    public function __construct(MenuTypeAR $menuTypeAR) {
+    public function __construct(MenuTypeAR $menuTypeAR, MenuAR $menuAR) {
         $this->_menuTypeAR = $menuTypeAR;
+        $this->_menuAR = $menuAR;
     }
 
 
@@ -49,6 +52,51 @@ class MenuService
 
     public function delType($ids){
         $ret = $this->_menuTypeAR->where('id', 'in', $ids)->update(['status'=>-1]);
+        if(!$ret){
+            return GenerateTools::error(1, '删除失败');
+        }
+        return GenerateTools::error(0, '删除成功');
+    }
+
+    public function getListAll( $where = [] ){
+        $data = $this->_menuAR->getListAll($where);
+        $newData = [];
+        foreach ($data as $item){
+            $item['label'] = $item['name'];
+            $newData[$item['id']] = $item;
+        }
+        unset($data);
+        $newMenu = GenerateTools::menuFormat($newData);
+        $newMenu = GenerateTools::menuFormatKey($newMenu);
+        return GenerateTools::error(0, '成功', ['list'=> $newMenu]);
+    }
+
+    /**
+     * 编辑菜单
+     * @param $data
+     */
+    public function editor($data){
+        try{
+            validate(MenuTypeVal::class)->check($data);
+            $ret = $this->_menuAR->editor($data);
+            if($ret!==true){
+                return GenerateTools::error(1, '保存失败'.$ret);
+            }
+            return GenerateTools::error(0, '保存成功');
+        }catch (ValidateException $exception){
+            return GenerateTools::error(1, $exception->getMessage());
+        }
+    }
+
+    public function del($id){
+        $data = $this->_menuAR->where(['id'=>$id])->find();
+        $where = [
+            'id' => $data->id
+        ];
+        if($data->join_string){
+            $where['join_string'] = $data->join_string.$data->id.'-';
+        }
+        $ret = $this->_menuAR->whereOr($where)->delete();
         if(!$ret){
             return GenerateTools::error(1, '删除失败');
         }

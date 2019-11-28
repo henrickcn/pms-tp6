@@ -12,6 +12,7 @@
 
 namespace app\common\ar;
 
+use app\common\model\AuthMod;
 use app\common\model\MenuMod;
 use app\common\tools\GenerateTools;
 use think\db\exception\DbException;
@@ -32,14 +33,13 @@ class MenuAR extends MenuMod
     }
 
     public function editor($data){
-        unset($data['session_key']);
-        $data['id'] = isset($data['id']) && $data['id'] ? $data['id']:GenerateTools::uuid();
         $auth = $this->field('id')->whereOR(['id'=>$data['id']])->find();
         try{
             if($auth){
                 $auth->setAttrs($data);
                 return $auth->updateData();
             }
+            unset($data['id']);
             return $this->save($data);
         }catch (DbException $exception){
             return $exception->getMessage();
@@ -57,5 +57,20 @@ class MenuAR extends MenuMod
             'page'  => $page,
             'data'  => $data
         ];
+    }
+
+    public function getListAll($where){
+        $where = [
+            ['menu.name', 'like', '%'.$where['name'].'%'],
+            ['menu.type_id', '=', $where['type_id']],
+        ];
+        return $this->field("menu.id,menu.icon,menu.name,menu.type_id,menu.auth_id,menu.url,
+        menu.parent_id,menu.weight,menu.join_string,menu.level,auth.name auth_name")
+            ->leftJoin('auth', 'auth.id=menu.auth_id')
+            ->where($where)
+            ->order('menu.level asc,menu.weight desc')
+            ->select()
+            ->toArray();
+
     }
 }

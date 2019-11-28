@@ -124,4 +124,21 @@ class GenerateTools
             'data'    => $data
         ];
     }
+
+    public static function menuFormat($menu){
+        foreach ($menu as $item){
+            $menu[$item['parent_id']]['children'][$item['id']] = &$menu[$item['id']];
+        }
+        return isset($menu[0]['children']) ? $menu[0]['children'] : array();
+    }
+
+    public static function menuFormatKey($newMenu){
+        $newMenu = array_values($newMenu);
+        foreach ($newMenu as $key=>&$item){
+            if(isset($item['children'])){
+                $item['children'] = static::menuFormatKey($item['children']);
+            }
+        }
+        return $newMenu;
+    }
 }

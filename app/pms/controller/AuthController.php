@@ -19,7 +19,8 @@ class AuthController extends PmsApiController
     public function ListAction()
     {
         $page = $this->request->post('page');
-        $data = $this->_authService->getList([], $page);
+        $keyword = $this->request->post('keyword');
+        $data = $this->_authService->getList($keyword, $page);
         return static::_error(0, '成功', $data['data']);
     }
 
