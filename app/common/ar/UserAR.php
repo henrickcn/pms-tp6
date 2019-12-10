@@ -13,11 +13,18 @@
 namespace app\common\ar;
 
 
+use app\common\model\UserInfoMod;
 use app\common\model\UserMod;
 use app\common\tools\GenerateTools;
+use think\Db;
 
 class UserAR extends UserMod
 {
+    public $userStatus = [
+        1 => '有效',
+        2 => '禁用'
+    ];
+
     /**
      * 用户登录系统
      */
@@ -50,20 +57,48 @@ class UserAR extends UserMod
      */
     public function editor($data){
         //查询用户信息是否存在
-        $user = $this->field('id,phone,oa_name')->whereOr([
-            'phone' => $data['phone'],
-            'oa_name' => $data['oa_name']
-        ])->find();
+        $user = $this->field('id,phone,oa_name')->where([
+            'id' => $data['id']
+        ])->where('user_status', 'in', [1,2])->find();
         if($user && (!isset($data['id']) || (isset($data['id']) && $user->id != $data['id']))){
             $msg = $user->phone==$data['phone'] ? '手机号已存在':'OA账号已存在';
             return GenerateTools::error(1, $msg);
         }
-        $data['id'] = $data['id']??GenerateTools::uuid();
+        $this->startTrans();
+        $userData = [
+            'id'      => $data['id']??GenerateTools::uuid(),
+            'phone'   => $data['phone'],
+            'oa_name' => $data['oa_name'],
+            'email'   => $data['email'],
+            'user_status' => $data['user_status']
+        ];
         if($data['pass_word']){
-            $data['pass_word'] = password_hash($data['pass_word'], PASSWORD_DEFAULT);
+            $userData['pass_word'] = password_hash($data['pass_word'], PASSWORD_DEFAULT);
+        }
+        if($user){
+            $userRet = static::update($userData);
+        }else{
+            $userRet = $this->save($userData);
         }
 
-        return $this->save($data);
+        $userInfoData = [
+            'user_id'   => $userData['id'],
+            'real_name' => $data['real_name'],
+            'email'     => $data['email'],
+            'phone'     => $data['phone']
+        ];
+        $userInfoMod = new UserInfoMod();
+        if($user){
+            $userInfoRet = $userInfoMod::update($userInfoData, ['user_id'=>$userData['id']]);
+        }else{
+            $userInfoRet = $userInfoMod->save($userInfoData);
+        }
+        if($userRet && $userInfoRet){
+            $this->commit();
+            return true;
+        }
+        $this->rollback();
+        return false;
     }
 
     /**
@@ -75,5 +110,42 @@ class UserAR extends UserMod
              ->join('user_info', 'user_info.user_id=user.id')
              ->where([ 'id' => $id])
              ->find()->toArray();
+    }
+
+    public function getList($keyword, $page, $orderBy=['create_time' => 'desc']){
+        $page['current'] = $page['current']??1;
+        $page['size'] = $page['size']??10;
+        $where[] = ['user.user_status','in','1,2'];
+        if($keyword){
+            $where[] = ['info.real_name|user.phone','like', '%'.$keyword.'%'];
+        }
+        $count = $this->where($where)->join('user_info info', 'info.user_id = user.id')->count();
+        $data = $this->field('user.id,info.real_name,user.phone,user.oa_name,info.email,user.login_ip,user.user_status,user.create_time')
+            ->alias('user')
+            ->join('user_info info', 'info.user_id = user.id')
+            ->where($where)->limit(($page['current']-1)*$page['size'], $page['size'])->order($orderBy)
+            ->select();
+        $page['total'] = $count;
+        return [
+            'count' => $count,
+            'page'  => $page,
+            'data'  => $data
+        ];
+    }
+
+    public function getUserStatusAttr($value){
+        return $this->userStatus[$value];
+    }
+
+    public function setUserStatusAttr($value){
+        return array_keys($this->userStatus,$value)[0];
+    }
+
+    public function deleteUserById( $ids=[] ){
+        $upUserRet = $this->where('id', 'in', $ids)->update(['user_status' => 3]);
+        if($upUserRet){
+            return true;
+        }
+        return false;
     }
 }

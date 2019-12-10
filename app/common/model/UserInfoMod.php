@@ -4,6 +4,7 @@ declare (strict_types = 1);
 namespace app\common\model;
 
 use think\Model;
+use think\model\concern\SoftDelete;
 
 /**
  * @mixin think\Model
@@ -14,6 +15,7 @@ class UserInfoMod extends Model
     protected $name = "user_info";
     //只读字段
     protected $readonly = ['user_id'];
+    protected $pk = '';
     //表字段
     protected $schema = [
         'user_id'    => 'string',

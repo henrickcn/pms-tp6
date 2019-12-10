@@ -37,10 +37,14 @@ class UserVal extends Validate
         'phone.mobile'      => '手机号格式错误',
         'oa_name.require'   => 'OA账号不能为空',
         'oa_name.min'       => 'OA账号不能小于4位',
+        'real_name.require'   => '真实姓名不能为空',
+        'email.require'   => '邮箱不能为空',
+        'email.email'   => '邮箱格式错误',
     ];
 
     protected $scene = [
         'login' => ['username', 'pass_word'], //登录场景
-        'insert'=> ['phone', 'pass_word', 'oa_name'] //添加场景
+        'insert'=> ['phone', 'pass_word', 'oa_name'], //添加场景
+        'editor'=> ['real_name','phone','oa_name','email']
     ];
 }

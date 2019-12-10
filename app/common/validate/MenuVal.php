@@ -5,7 +5,7 @@ namespace app\common\validate;
 
 use think\Validate;
 
-class MenuTypeVal extends Validate
+class MenuVal extends Validate
 {
     /**
      * 定义验证规则

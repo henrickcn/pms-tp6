@@ -19,8 +19,8 @@ class AuthController extends PmsApiController
     public function ListAction()
     {
         $page = $this->request->post('page');
-        $keyword = $this->request->post('keyword');
-        $data = $this->_authService->getList($keyword, $page);
+        $data = $this->request->post('data');
+        $data = $this->_authService->getList($data, $page);
         return static::_error(0, '成功', $data['data']);
     }
 
@@ -28,5 +28,21 @@ class AuthController extends PmsApiController
         $data = $this->request->post();
         $ret = $this->_authService->editor($data);
         return static::_error($ret['errcode'], $ret['errmsg']);
+    }
+
+    public function delAction(){
+        $data = $this->request->post('id');
+        if(empty($data)){
+            return static::_error(1, '请选择要删除的数据');
+        }
+        $ids = [];
+        foreach ($data as $item){
+            $ids[] = $item['id'];
+        }
+        $ret = $this->_authService->del($ids);
+        if($ret){
+            return static::_error(0, '删除成功');
+        }
+        return static::_error(1, '删除失败');
     }
 }

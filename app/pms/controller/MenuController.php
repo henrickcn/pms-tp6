@@ -50,7 +50,7 @@ class MenuController extends PmsApiController
     }
 
     public function getTypeListAction(){
-        $ret = $this->_menuService->getTypeList(true, [], ['prop'=>'create_time', 'orderBy'=>'ascending']);
+        $ret = $this->_menuService->getTypeList('', [], ['prop'=>'create_time', 'orderBy'=>'ascending']);
         return static::_error($ret['errcode'], $ret['errmsg'], ['list'=>$ret['data']]);
     }
 
@@ -89,7 +89,9 @@ class MenuController extends PmsApiController
             'weight'     => $this->request->post('weight'),
             'icon'       => $this->request->post('icon'),
             'join_string'=> $this->request->post('join_string'),
+            'is_hide'=> $this->request->post('is_hide')=='是' ? 0:1,
         ];
+        $data['is_hide'] = $data['is_hide'] ? :0;
 
         $ret = $this->_menuService->editor($data);
         return static::_error($ret['errcode'], $ret['errmsg']);

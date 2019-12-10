@@ -141,4 +141,14 @@ class GenerateTools
         }
         return $newMenu;
     }
+
+    public static function orderBy($order){
+        $orderBy = "ASC";
+        switch (trim($order['orderBy'],'"')){
+            case 'descending':
+                $orderBy = 'DESC';
+                break;
+        }
+        return [ $order['prop'] => $orderBy ];
+    }
 }

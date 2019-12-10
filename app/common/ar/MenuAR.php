@@ -65,7 +65,7 @@ class MenuAR extends MenuMod
             ['menu.type_id', '=', $where['type_id']],
         ];
         return $this->field("menu.id,menu.icon,menu.name,menu.type_id,menu.auth_id,menu.url,
-        menu.parent_id,menu.weight,menu.join_string,menu.level,auth.name auth_name")
+        menu.parent_id,menu.weight,menu.join_string,menu.level,auth.name auth_name,menu.is_hide")
             ->leftJoin('auth', 'auth.id=menu.auth_id')
             ->where($where)
             ->order('menu.level asc,menu.weight desc')

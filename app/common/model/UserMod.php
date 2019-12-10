@@ -4,6 +4,7 @@ declare (strict_types = 1);
 namespace app\common\model;
 
 use think\Model;
+use think\model\concern\SoftDelete;
 
 /**
  * 用户模型
@@ -29,12 +30,6 @@ class UserMod extends Model
         'login_ip' => 'string',
         'user_status' => 'int',
     ];
-
-    public static function onAfterInsert(Model $model)
-    {
-        $userInfoMod = new UserInfoMod();
-        return $userInfoMod->save(['user_id' => $model->id, 'phone'=> $model->phone]);
-    }
 
     public function getNickNameAttr($value, $data){
         if($value){

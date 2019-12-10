@@ -55,7 +55,7 @@ return [
             // 开启字段缓存
             'fields_cache'      => false,
             // 字段缓存路径
-            'schema_cache_path' => app()->getRuntimePath() . 'schema' . DIRECTORY_SEPARATOR,
+            'schema_cache_path' => app()->getRuntimePath() . 'schema' . DIRECTORY_SEPARATOR
         ],
 
         // 更多的数据库配置信息

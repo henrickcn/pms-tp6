@@ -26,6 +26,7 @@ class MenuMod extends Model
         'parent_id' => 'number',
         'weight' => 'number',
         'icon' => 'string',
-        'join_string' => 'string'
+        'join_string' => 'string',
+        'is_hide' => 'number'
     ];
 }

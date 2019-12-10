@@ -23,7 +23,7 @@ class MenuTypeAR extends MenuTypeMod
     public function getList($condition=[], $page=[], $orderBy=[]){
         $where['status'] = 1;
         $whereOR = [];
-        if($condition){
+        if(!empty($condition)){
             $whereOR[] = ['name|name_en','like',"%".$condition."%"];
         }
         $orderByString = 'create_time desc';
@@ -31,11 +31,11 @@ class MenuTypeAR extends MenuTypeMod
             $orderByString = $orderBy['prop']." ".(isset($orderBy['orderBy']) && $orderBy['orderBy']=='ascending' ?"asc":"desc");
         }
         $count = $this->where($where)->where($whereOR)->count();
-        $this->where($where)->where($whereOR);
-        if(is_array($condition)){
-            $this->limit(($page['current']-1)*$page['size'],$page['size']);
+        $query = $this->where($where)->where($whereOR);
+        if(!empty($page)){
+            $query->limit(($page['current']-1)*$page['size'],$page['size']);
         }
-        $data = $this->order($orderByString)->select();
+        $data = $query->order($orderByString)->select();
         $page['total'] = $count;
         return [
             'count' => $count,

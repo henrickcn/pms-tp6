@@ -38,8 +38,16 @@ class AuthService
         return $data;
     }
 
-    public function getList($keyword='', $page=[]){
-        $ret = $this->_authAR->getList($keyword, $page);
+    public function getList($data=[], $page=[]){
+        $orderBy = '';
+        if(is_array($data)){
+            $keyword = $data['keyword'];
+            $orderBy = GenerateTools::orderBy($data['orderBy']);
+        }else{
+            $keyword = $data;
+        }
+
+        $ret = $this->_authAR->getList($keyword, $page, $orderBy);
         return GenerateTools::error(0, '成功', $ret);
     }
 
@@ -54,5 +62,9 @@ class AuthService
         }catch (ValidateException $exception){
             return GenerateTools::error(1, $exception->getMessage());
         }
+    }
+
+    public function del($ids){
+        return $this->_authAR->where('id', 'in', $ids)->delete($ids);
     }
 }

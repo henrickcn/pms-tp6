@@ -71,4 +71,39 @@ class UserService
             return GenerateTools::error(1, $exception->getMessage());
         }
     }
+
+    /**
+     * 获取列表
+     */
+    public function getList($keyword='', $page=[], $orderBy=[]){
+        $ret = $this->_userAR->getList($keyword, $page, $orderBy);
+        return GenerateTools::error(0, '成功', $ret);
+    }
+
+    /**
+     * 编辑用户信息
+     */
+    public function editor( $data = [] ){
+        $userVal = new UserVal();
+        if(!$userVal->scene('editor')->check($data)){
+            return GenerateTools::error(1, $userVal->getError());
+        }
+        $ret = $this->_userAR->editor($data);
+        if($ret){
+            return GenerateTools::error(0, '操作成功');
+        }
+        return GenerateTools::error(1, '操作失败');
+    }
+
+    /**
+     * 删除用户
+     * @param array $ids
+     */
+    public function del( $ids=[] ){
+        $ret = $this->_userAR->deleteUserById( $ids );
+        if($ret){
+            return GenerateTools::error(0, '删除成功');
+        }
+        return GenerateTools::error(1, '删除失败');
+    }
 }
