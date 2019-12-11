@@ -39,7 +39,7 @@ class UserController extends PmsApiController
     public function listAction(){
         $page = $this->request->post('page');
         $data = $this->request->post('data');
-        $data = $this->_userService->getList($data['keyword'], $page, GenerateTools::orderBy($data['orderBy']));
+        $data = $this->_userService->getList($data['keyword'], $page, GenerateTools::orderBy($data['orderBy']), $this->companyId);
         return static::_error(0, '成功', $data['data']);
     }
 
@@ -52,6 +52,7 @@ class UserController extends PmsApiController
             'oa_name' => $this->request->post('oa_name'),
             'email' => $this->request->post('email'),
             'user_status' => $this->request->post('user_status'),
+            'company_id' => $this->companyId
         ];
         $ret = $this->_userService->editor($user);
         return static::_error($ret['errcode'], $ret['errmsg']);
@@ -70,5 +71,12 @@ class UserController extends PmsApiController
         return static::_error($ret['errcode'], $ret['errmsg']);
     }
 
+    /**
+     * 退出登录
+     */
+    public function logoutAction(){
+        $res = $this->_userService->logout($this->userId, $this->request->post('device_type'));
+        return static::_error($res['errcode'], $res['errmsg']);
+    }
 
 }

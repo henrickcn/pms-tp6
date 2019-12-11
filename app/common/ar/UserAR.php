@@ -13,6 +13,7 @@
 namespace app\common\ar;
 
 
+use app\common\model\CompanyUserMod;
 use app\common\model\UserInfoMod;
 use app\common\model\UserMod;
 use app\common\tools\GenerateTools;
@@ -30,14 +31,16 @@ class UserAR extends UserMod
      */
     public function login($data){
         //查询用户信息是否存在
-        $user = $this->field('id,phone,oa_name,pass_word,user_status')->whereOr([
-            'phone'   => $data['username'],
-            'oa_name' => $data['username']
-        ])->find();
+        $user = $this->field('id,phone,oa_name,pass_word,user_status')->whereRaw(
+            'phone=:phone OR oa_name=:oa_name', [
+                'phone'   => $data['username'],
+                'oa_name' => $data['username']
+            ]
+        )->where('user_status', 'in', [1,2])->find();
         if(!$user){
             return GenerateTools::error(1, '用户不存在');
         }
-        if($user->user_status != 1){
+        if($user->user_status != '有效'){
             return GenerateTools::error(1, '您的账号已失效，请联系管理员');
         }
 
@@ -47,9 +50,7 @@ class UserAR extends UserMod
         if($user->pass_word != password_verify($data['pass_word'], $user->pass_word)){
             return GenerateTools::error(1, '密码错误');
         }
-        $user->login_ip = $data['ip'];
-        $user->save();
-        return $user->id;
+        return $user;
     }
 
     /**
@@ -57,10 +58,14 @@ class UserAR extends UserMod
      */
     public function editor($data){
         //查询用户信息是否存在
-        $user = $this->field('id,phone,oa_name')->where([
-            'id' => $data['id']
-        ])->where('user_status', 'in', [1,2])->find();
-        if($user && (!isset($data['id']) || (isset($data['id']) && $user->id != $data['id']))){
+        $userId = $data['id'];
+        $user = $this->field('id,phone,oa_name')->whereRaw(
+            'phone=:phone or oa_name=:oa_name', [
+                'phone'   => $data['phone'],
+                'oa_name' => $data['oa_name']
+            ]
+        )->where('user_status', 'in', [1,2])->find();
+        if($user && (empty($data['id']) || $user->id != $data['id'])){
             $msg = $user->phone==$data['phone'] ? '手机号已存在':'OA账号已存在';
             return GenerateTools::error(1, $msg);
         }
@@ -75,10 +80,16 @@ class UserAR extends UserMod
         if($data['pass_word']){
             $userData['pass_word'] = password_hash($data['pass_word'], PASSWORD_DEFAULT);
         }
-        if($user){
+        $compayUserRet = true;
+        if($userId){
             $userRet = static::update($userData);
         }else{
             $userRet = $this->save($userData);
+            $compayUserMod = new CompanyUserMod();
+            $compayUserRet = $compayUserMod->save([
+                'user_id'    => $userData['id'],
+                'company_id' => $data['company_id'],
+            ]);
         }
 
         $userInfoData = [
@@ -88,12 +99,12 @@ class UserAR extends UserMod
             'phone'     => $data['phone']
         ];
         $userInfoMod = new UserInfoMod();
-        if($user){
+        if($userId){
             $userInfoRet = $userInfoMod::update($userInfoData, ['user_id'=>$userData['id']]);
         }else{
             $userInfoRet = $userInfoMod->save($userInfoData);
         }
-        if($userRet && $userInfoRet){
+        if($userRet && $userInfoRet && $compayUserRet){
             $this->commit();
             return true;
         }
@@ -106,23 +117,37 @@ class UserAR extends UserMod
      * @param string $id
      */
     public function getUserInfoById( $id=0 ){
-        return $this->field("user.id,user.oa_name,user_info.real_name,user_info.avatar,user_info.nick_name,user_info.user_status")
+        return $this->field("user.id,cu.company_id,user.oa_name,user_info.real_name,user_info.avatar,user_info.nick_name,user_info.user_status as info_user_status")
              ->join('user_info', 'user_info.user_id=user.id')
-             ->where([ 'id' => $id])
+             ->join('company_user cu', 'cu.user_id=user.id')
+             ->where([ 'user.id' => $id])
              ->find()->toArray();
     }
 
-    public function getList($keyword, $page, $orderBy=['create_time' => 'desc']){
+    /**
+     * 用户列表
+     * @param $keyword
+     * @param $page
+     * @param array $orderBy
+     * @return array
+     */
+    public function getList($keyword, $page, $orderBy=['create_time' => 'desc'], $companyId=''){
         $page['current'] = $page['current']??1;
         $page['size'] = $page['size']??10;
-        $where[] = ['user.user_status','in','1,2'];
+        $where[] = ['user.user_status', 'in', '1,2'];
+        if($companyId)
+            $where[] = ['cu.company_id', '=', $companyId];
         if($keyword){
             $where[] = ['info.real_name|user.phone','like', '%'.$keyword.'%'];
         }
-        $count = $this->where($where)->join('user_info info', 'info.user_id = user.id')->count();
+        $count = $this->where($where)
+            ->join('user_info info', 'info.user_id = user.id')
+            ->join('company_user cu', 'cu.user_id = user.id')
+            ->count();
         $data = $this->field('user.id,info.real_name,user.phone,user.oa_name,info.email,user.login_ip,user.user_status,user.create_time')
             ->alias('user')
             ->join('user_info info', 'info.user_id = user.id')
+            ->join('company_user cu', 'cu.user_id = user.id')
             ->where($where)->limit(($page['current']-1)*$page['size'], $page['size'])->order($orderBy)
             ->select();
         $page['total'] = $count;
@@ -141,10 +166,42 @@ class UserAR extends UserMod
         return array_keys($this->userStatus,$value)[0];
     }
 
+    /**
+     * 删除用户
+     * @param array $ids
+     * @return bool
+     */
     public function deleteUserById( $ids=[] ){
         $upUserRet = $this->where('id', 'in', $ids)->update(['user_status' => 3]);
         if($upUserRet){
             return true;
+        }
+        return false;
+    }
+
+    public function logout( $id, $type ){
+        //查询用户信息是否存在
+        $user = $this->where([
+            'id' => $id
+        ])->find();
+        $sessionKey = '';
+        switch ($type){
+            case 'pc':
+                $sessionKey = $user->pc_session_key;
+                $user->pc_session_key = '';
+                break;
+            case 'app':
+                $sessionKey = $user->app_session_key;
+                $user->app_session_key = '';
+                break;
+            case '':
+                $sessionKey = $user->h5_session_key;
+                $user->h5_session_key = '';
+                break;
+        }
+        $ret = $user->save();
+        if($ret){
+            return $sessionKey;
         }
         return false;
     }

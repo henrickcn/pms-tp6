@@ -33,7 +33,8 @@ class MenuController extends PmsApiController
         $data = [
             'id'   => $data['id']??'',
             'name' => $data['name']??'',
-            'name_en' => $data['name_en']??''
+            'name_en' => $data['name_en']??'',
+            'company_id' => $this->companyId
         ];
         $ret = $this->_menuService->editorType($data);
         return static::_error($ret['errcode'], $ret['errmsg']);
@@ -90,6 +91,7 @@ class MenuController extends PmsApiController
             'icon'       => $this->request->post('icon'),
             'join_string'=> $this->request->post('join_string'),
             'is_hide'=> $this->request->post('is_hide')=='是' ? 0:1,
+            'company_id' => $this->companyId
         ];
         $data['is_hide'] = $data['is_hide'] ? :0;
 
