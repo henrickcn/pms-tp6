@@ -62,10 +62,10 @@ class PmsApiController extends BaseController
             return parent::initialize();
         }
         $sessionKey = $this->request->request('__session_key');
-        if(!$sessionKey){
+        $this->userInfo = cache($sessionKey);
+        if(!$sessionKey || empty($this->userInfo)){
             exit(static::_error(100, '你还没有登录哦~'));
         }
-        $this->userInfo = cache($sessionKey);
         $this->userId = $this->userInfo['id'];
         $this->companyId = $this->userInfo['company_id']??'';
         cache($sessionKey, $this->userInfo, 7200);
